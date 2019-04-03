@@ -320,7 +320,27 @@ func (c *APIClient) decode(v interface{}, b []byte, contentType string) (err err
 	if s, ok := v.(*string); ok {
 		*s = string(b)
 		return nil
+  } else if s, ok := v.(**os.File); ok {
+		t, err := ioutil.TempFile("", "tmp")
+		if err != nil {
+			return err
+		}
+
+		_, err = t.Write(b)
+		if err != nil {
+			return err
+		}
+
+		err = t.Close()
+		if err != nil {
+			return err
+		}
+
+		*s = t
+
+		return nil
 	}
+
 	if xmlCheck.MatchString(contentType) {
 		if err = xml.Unmarshal(b, v); err != nil {
 			return err
